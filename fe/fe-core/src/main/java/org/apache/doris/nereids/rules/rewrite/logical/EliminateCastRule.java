@@ -24,10 +24,14 @@ import org.apache.doris.nereids.trees.expressions.ComparisonPredicate;
 import org.apache.doris.nereids.trees.expressions.Expression;
 import org.apache.doris.nereids.trees.expressions.SlotReference;
 import org.apache.doris.nereids.trees.expressions.literal.Literal;
+import org.apache.doris.nereids.types.BigIntType;
+import org.apache.doris.nereids.types.CharType;
 import org.apache.doris.nereids.types.DataType;
 import org.apache.doris.nereids.types.IntegerType;
 import org.apache.doris.nereids.types.SmallIntType;
+import org.apache.doris.nereids.types.StringType;
 import org.apache.doris.nereids.types.TinyIntType;
+import org.apache.doris.nereids.types.VarcharType;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -40,11 +44,15 @@ public class EliminateCastRule extends AbstractExpressionRewriteRule {
 
     public static final EliminateCastRule INSTANCE = new EliminateCastRule();
 
-    private static final Map<DataType, Integer> typeGroupMap = ImmutableMap.of(
-            TinyIntType.INSTANCE, 0,
-            SmallIntType.INSTANCE, 0,
-            IntegerType.INSTANCE, 0
-    );
+    private static final Map<DataType, Integer> typeGroupMap = new ImmutableMap.Builder<DataType, Integer>()
+            .put(TinyIntType.INSTANCE, 0)
+            .put(SmallIntType.INSTANCE, 0)
+            .put(IntegerType.INSTANCE, 0)
+            .put(BigIntType.INSTANCE, 0)
+            .put(VarcharType.INSTANCE, 1)
+            .put(StringType.INSTANCE, 1)
+            .put(CharType.INSTANCE, 1)
+            .build();
 
     @Override
     public Expression visitComparisonPredicate(ComparisonPredicate predicate, ExpressionRewriteContext context) {
