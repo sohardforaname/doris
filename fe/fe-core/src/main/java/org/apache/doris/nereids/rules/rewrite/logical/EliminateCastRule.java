@@ -25,7 +25,6 @@ import org.apache.doris.nereids.trees.expressions.Expression;
 import org.apache.doris.nereids.trees.expressions.SlotReference;
 import org.apache.doris.nereids.trees.expressions.literal.Literal;
 import org.apache.doris.nereids.types.BigIntType;
-import org.apache.doris.nereids.types.CharType;
 import org.apache.doris.nereids.types.DataType;
 import org.apache.doris.nereids.types.IntegerType;
 import org.apache.doris.nereids.types.SmallIntType;
@@ -51,7 +50,6 @@ public class EliminateCastRule extends AbstractExpressionRewriteRule {
             .put(BigIntType.INSTANCE, 0)
             .put(VarcharType.INSTANCE, 1)
             .put(StringType.INSTANCE, 1)
-            .put(CharType.INSTANCE, 1)
             .build();
 
     @Override
