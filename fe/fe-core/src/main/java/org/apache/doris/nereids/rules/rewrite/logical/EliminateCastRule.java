@@ -19,18 +19,60 @@ package org.apache.doris.nereids.rules.rewrite.logical;
 
 import org.apache.doris.nereids.rules.expression.rewrite.AbstractExpressionRewriteRule;
 import org.apache.doris.nereids.rules.expression.rewrite.ExpressionRewriteContext;
+import org.apache.doris.nereids.trees.expressions.Cast;
 import org.apache.doris.nereids.trees.expressions.ComparisonPredicate;
 import org.apache.doris.nereids.trees.expressions.Expression;
+import org.apache.doris.nereids.trees.expressions.SlotReference;
+import org.apache.doris.nereids.trees.expressions.literal.Literal;
+import org.apache.doris.nereids.types.DataType;
+import org.apache.doris.nereids.types.IntegerType;
+import org.apache.doris.nereids.types.SmallIntType;
+import org.apache.doris.nereids.types.TinyIntType;
+
+import com.google.common.collect.ImmutableMap;
+
+import java.util.Map;
 
 /**
- * s
+ * to eliminate useless cast so that the predicate can be push down to storage engine.
  */
 public class EliminateCastRule extends AbstractExpressionRewriteRule {
 
     public static final EliminateCastRule INSTANCE = new EliminateCastRule();
 
+    private static final Map<DataType, Integer> typeGroupMap = ImmutableMap.of(
+            TinyIntType.INSTANCE, 0,
+            SmallIntType.INSTANCE, 0,
+            IntegerType.INSTANCE, 0
+    );
+
     @Override
     public Expression visitComparisonPredicate(ComparisonPredicate predicate, ExpressionRewriteContext context) {
-        return predicate;
+        int tag = checkIfNeedHandle(predicate);
+        if (tag == -1) {
+            return predicate;
+        }
+        SlotReference slot = ((SlotReference) predicate.child(tag));
+        Literal literal = ((Literal) ((Cast) predicate.child(1 ^ tag)).child());
+        // can handle: int <-> int, string <-> string, and LargeInt can't be represented by 64-bit integer
+        if (typeGroupMap.get(slot.getDataType()) == null || typeGroupMap.get(literal.getDataType()) == null
+                || !typeGroupMap.get(slot.getDataType()).equals(typeGroupMap.get(literal.getDataType()))) {
+            return predicate;
+        }
+        Expression[] exprs = new Expression[] {literal, slot};
+        return predicate.withChildren(exprs[tag], exprs[1 ^ tag]);
+    }
+
+    private int checkIfNeedHandle(ComparisonPredicate predicate) {
+        if (predicate.left() instanceof SlotReference && checkLiteralCast(predicate.right())) {
+            return 0;
+        } else if (checkLiteralCast(predicate.left()) && predicate.right() instanceof SlotReference) {
+            return 1;
+        }
+        return -1;
+    }
+
+    private boolean checkLiteralCast(Expression expr) {
+        return expr instanceof Cast && ((Cast) expr).child() instanceof Literal;
     }
 }
