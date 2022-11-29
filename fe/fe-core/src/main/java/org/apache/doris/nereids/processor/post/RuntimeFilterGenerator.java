@@ -29,6 +29,7 @@ import org.apache.doris.nereids.trees.expressions.SlotReference;
 import org.apache.doris.nereids.trees.plans.JoinType;
 import org.apache.doris.nereids.trees.plans.Plan;
 import org.apache.doris.nereids.trees.plans.RelationId;
+import org.apache.doris.nereids.trees.plans.physical.PhysicalAggregate;
 import org.apache.doris.nereids.trees.plans.physical.PhysicalHashJoin;
 import org.apache.doris.nereids.trees.plans.physical.PhysicalOlapScan;
 import org.apache.doris.nereids.trees.plans.physical.PhysicalPlan;
@@ -114,6 +115,15 @@ public class RuntimeFilterGenerator extends PlanPostProcessor {
                     }));
         }
         return join;
+    }
+
+    @Override
+    public PhysicalPlan visitPhysicalAggregate(PhysicalAggregate<? extends Plan> aggregate, CascadesContext context) {
+        aggregate.child().accept(this, context);
+        RuntimeFilterContext ctx = context.getRuntimeFilterContext();
+        Map<NamedExpression, Pair<RelationId, NamedExpression>> aliasTransferMap = ctx.getAliasTransferMap();
+        aggregate.getOutputExpressions().forEach(aliasTransferMap::remove);
+        return aggregate;
     }
 
     // TODO: support src key is agg slot.
