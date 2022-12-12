@@ -192,9 +192,6 @@ public class SessionVariable implements Serializable, Writable {
     public static final String ENABLE_NEREIDS_PLANNER = "enable_nereids_planner";
 
     public static final String ENABLE_FALLBACK_TO_ORIGINAL_PLANNER = "enable_fallback_to_original_planner";
-
-    public static final String ENABLE_NEREIDS_RUNTIME_FILTER = "enable_nereids_runtime_filter";
-
     public static final String BROADCAST_RIGHT_TABLE_SCALE_FACTOR = "broadcast_right_table_scale_factor";
     public static final String BROADCAST_ROW_COUNT_LIMIT = "broadcast_row_count_limit";
 
@@ -547,9 +544,6 @@ public class SessionVariable implements Serializable, Writable {
     private double nereidsCboPenaltyFactor = 0.7;
     @VariableMgr.VarAttr(name = ENABLE_NEREIDS_TRACE)
     private boolean enableNereidsTrace = false;
-
-    @VariableMgr.VarAttr(name = ENABLE_NEREIDS_RUNTIME_FILTER)
-    private boolean enableNereidsRuntimeFilter = true;
 
     @VariableMgr.VarAttr(name = BROADCAST_RIGHT_TABLE_SCALE_FACTOR)
     private double broadcastRightTableScaleFactor = 10.0;
@@ -1247,14 +1241,6 @@ public class SessionVariable implements Serializable, Writable {
 
     public boolean isEnableNereidsTrace() {
         return isEnableNereidsPlanner() && enableNereidsTrace;
-    }
-
-    public boolean isEnableNereidsRuntimeFilter() {
-        return enableNereidsRuntimeFilter;
-    }
-
-    public void setEnableNereidsRuntimeFilter(boolean enableNereidsRuntimeFilter) {
-        this.enableNereidsRuntimeFilter = enableNereidsRuntimeFilter;
     }
 
     public boolean isEnableSingleReplicaInsert() {
