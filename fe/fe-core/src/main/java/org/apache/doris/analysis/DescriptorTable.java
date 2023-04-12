@@ -195,7 +195,7 @@ public class DescriptorTable {
                         && tupleD.getTable().getId() >= 0) {
                     referencedTbls.put(tupleD.getTable().getId(), tupleD.getTable());
                 }
-                for (SlotDescriptor slotD : tupleD.getMaterializedSlots()) {
+                for (SlotDescriptor slotD : tupleD.getSlots()) {
                     result.addToSlotDescriptors(slotD.toThrift());
                 }
             }
